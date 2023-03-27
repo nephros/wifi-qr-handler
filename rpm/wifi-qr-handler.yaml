@@ -1,0 +1,67 @@
+Name: wifi-qr-handler
+Summary: register WIFI scheme and open Settings
+Version: 0.1.0
+Release: 0
+Group: Applications
+License: ASL 2.0
+URL: https://github.com/nephros/wifi-qr-handler
+SCM: https://github.com/nephros/wifi-qr-handler
+Sources:
+    - '%{name}-%{version}.tar.gz'
+Description: |
+    %{summary}.
+
+#    %if "%{?vendor}" == "chum"
+#    PackageName: Template Application
+#    Type: desktop-application
+#    DeveloperName: Peter G.
+#    DeveloperLogin: nephros
+#    PackagerName: nephros
+#    Categories:
+#     - Media
+#     - Video
+#    Custom:
+#      Repo: %{url}
+#    Icon: %{url}/master/icons/template.svg
+#    Screenshots:
+#     - %{url}/raw/metadata/screenshots/screenshot1.png
+#     - %{url}/raw/metadata/screenshots/screenshot2.png
+#     - %{url}/raw/metadata/screenshots/screenshot3.png
+#    Url:
+#      Homepage: %{url}
+#      Help: %{url}/discussions
+#      Bugtracker: %{url}/issues
+#      Donations:
+#        - https://noyb.eu/en/donations-other-support-options
+#        - https://my.fsfe.org/donate
+#        - https://supporters.eff.org/donate/join-4
+#        - https://openrepos.net/donate
+#    %endif
+
+SetupOptions: -q -n %{name}-%{version}/upstream
+RpmLintIgnore:
+  - 'summary-too-long'
+  - 'no-changelogname-tag'
+  - 'invalid-url'
+  - 'desktopfile-without-binary'
+  - 'explicit-lib-dependency'
+#Patches:
+#  - 'baz'
+Requires:
+PkgBR:
+#PkgConfigBR:
+#    - ^^^
+Configure: none
+Builder: none
+NoIconCache: true
+BuildArch: noarch
+#AutoSubPackages:
+#  - doc
+Files:
+  - '%{_datadir}/applications/%{name}.desktop'
+  # '%{_datadir}/icons/*/*/apps/%{name}.png'
+  # '%{_datadir}/icons/*/*/apps/%{name}.svg'
+  # '%{_datadir}/themes/sailfish-default/meegotouch/*/icons/*.png'
+  # '%dir %{_datadir}/%{name}'
+  # '%{_datadir}/%{name}/translations/*.qm'
+  # '%{_datadir}/%{name}/qml/*'

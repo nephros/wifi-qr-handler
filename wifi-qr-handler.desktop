@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Icon=icon-m-wlan
+Name=Add Wifi Network
+X-MeeGo-Logical-Id=settings-ap-name
+X-MeeGo-Translation-Catalog=settings
+MimeType=x-scheme-handler/wifi;
+X-Maemo-Service=com.jolla.settings
+X-Maemo-Object-Path=/com/jolla/settings/ui
+X-Maemo-Method=com.jolla.settings.ui.showAddNetworkDialog
+# make sure we pass NO args
+X-Maemo-Fixed-Args=
+#X-Maemo-Method=com.jolla.settings.ui.openPage
+# parms: 'system_settings/connectivity/wlan'"
+
+NotShowIn=X-MeeGo;
+Hidden=true
+NoDisplay=true
