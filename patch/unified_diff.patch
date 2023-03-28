@@ -45,8 +45,8 @@ diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-
                  } else if (addNetworkProperties.caCertFile) {
 diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/settings.qml
 --- a/usr/share/jolla-settings/settings.qml	2023-03-28 08:26:18.094183631 +0200
-+++ b/usr/share/jolla-settings/settings.qml	2023-03-28 14:59:31.858066005 +0200
-@@ -99,6 +99,41 @@
++++ b/usr/share/jolla-settings/settings.qml	2023-03-28 15:58:27.359777386 +0200
+@@ -99,6 +99,47 @@
              window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true })
          }
  
@@ -57,17 +57,23 @@ diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/se
 +            if (!scheme.test(code.toString())) {
 +                showAddNetworkDialog()
 +            } else {
-+                console.info("Trying to add network from QR code")
-+                // 'wifi:S:sApname;T:sType;P:sPassword;H:bHidden;I:EAPsIdentity;HbHidden;S::sEAPMethod;PH2:sEAPPhase2'
-+                // T: WEP or WPA or WPA2-EAP, or nopass
-+                // TODO/FIXME: type muas probably submitted including the Method, e.g "WPA-EAP (TTLS)"
++                /* See also: https://github.com/zxing/zxing/wiki/Barcode-Contents
++                 *
++                 * 'wifi:S:sApname;T:sType;P:sPassword;H:bHidden;I:sEAPIdentity;H:bHidden;E:sEAPMethod;PH2:sEAPPhase2'
++                 * S: SSID
++                 * T: WEP or WPA or WPA2-EAP, or nopass
++                 * E: TTLS or PWD
++                 *
++                 *  FIXME: #1 the split breaks if any of the fields contain (escaped) colons.
++                 *  FIXME: #2 the split breaks if any of the fields contain (escaped) semi-colons.
++                 *  FIXME: #3 cleaning the escaping backslashes will also remove a double-backslash
++                 */
++                console.info("Adding Wi-Fi network from QR code")
 +                var tokens = code.toString().replace(scheme,'').split(';');
-+                //console.info("Tokens are:", tokens.join(','))
 +                var codes = {}
 +                for (var i=0; i<tokens.length; ++i) {
 +                    var pair = tokens[i].split(':')
 +                    if (pair.length < 2) continue;
-+                    //console.info("Tokens made pair:", pair.join(','))
 +                    if (pair && pair[1]) pair[1].replace(/\\/g,''); // special chars are/may be backslash-escaped
 +                    if (pair && pair[1] && pair[1].length > 0) codes[pair[0]] = pair[1];
 +                }
@@ -75,12 +81,12 @@ diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/se
 +                    ssid:         codes["S"],
 +                    securityType: codes["T"],
 +                    passphrase:   codes["P"],
++                    anon:         codes["A"],
 +                    identity:     codes["I"],
 +                    hidden:       (codes["H"] === "true"),
 +                    eapMethod:    codes["E"],
 +                    phase2:       codes["PH2"]
 +                }
-+                //console.info("Determined settings:", JSON.stringify(nwconfig,null,2))
 +                window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true, "settingsInput": nwconfig })
 +            }
 +        }
