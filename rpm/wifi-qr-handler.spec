@@ -9,7 +9,7 @@ Name:       wifi-qr-handler
 # << macros
 
 Summary:    register WIFI scheme and open Settings
-Version:    0.2.0
+Version:    0.3.0
 Release:    0
 Group:      Applications
 License:    ASL 2.0

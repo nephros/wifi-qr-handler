@@ -1,19 +1,72 @@
+diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-settings/pages/wlan/mainpage.qml
+--- a/usr/share/jolla-settings/pages/wlan/mainpage.qml	2023-03-28 13:28:54.759998828 +0200
++++ b/usr/share/jolla-settings/pages/wlan/mainpage.qml	2023-03-28 14:45:44.761152640 +0200
+@@ -15,6 +15,7 @@
+     property var _errorPlaceholder
+     property bool showAddNetworkDialog
+     property bool pageReady
++    property var settingsInput
+ 
+     onStatusChanged: {
+         if (status == PageStatus.Active) {
+@@ -23,16 +24,36 @@
+                 showAddNetworkDialog = false
+ 
+                 var addNetworkProperties = networkHelper.readSettings()
++                if (settingsInput !== undefined) {
++                    console.info("read config:", JSON.stringify(addNetworkProperties, null, 2));
++                    console.info("input config:", JSON.stringify(settingsInput, null, 2));
++                }
++                //    addNetworkProperties.ssid         = settingsInput.ssid
++                //    //addNetworkProperties.securityType = settingsInput.securityType
++                //    addNetworkProperties.passphrase   = settingsInput.passphrase
++                //    //addNetworkProperties.identity     = settingsInput.identity
++                //    //addNetworkProperties.hidden       = settingsInput.hidden
++                //    //addNetworkProperties.eapMethod    = settingsInput.eapMethod
++                //    //addNetworkProperties.phase2       = settingsInput.phase2
++                //}
+                 var dialog = pageStack.push(Qt.resolvedUrl("AddNetworkDialog.qml"), { networkManager: networkManager }, PageStackAction.Immediate)
+-                dialog.network.ssid = addNetworkProperties.ssid
+-                dialog.network.hidden = addNetworkProperties.hidden
+-                dialog.network.securityType = addNetworkProperties.securityType
++                if (settingsInput !== undefined) {
++                    dialog.network.ssid = settingsInput.ssid
++                    dialog.network.hidden = settingsInput.hidden
++                    // FIXME
++                    dialog.network.securityType = NetworkService.SecurityPSK
++                    dialog.network.passphrase = settingsInput.passphrase
++                } else {
++                    dialog.network.ssid = addNetworkProperties.ssid
++                    dialog.network.hidden = addNetworkProperties.hidden
++                    dialog.network.securityType = addNetworkProperties.securityType
++                    dialog.network.passphrase = addNetworkProperties.passphrase
++                }
+                 if (addNetworkProperties.eapMethod !== undefined)
+                     dialog.network.eapMethod = addNetworkProperties.eapMethod
+                 if (addNetworkProperties.phase2)
+                     dialog.network.phase2 = addNetworkProperties.phase2
+                 dialog.network.identity = addNetworkProperties.identity
+-                dialog.network.passphrase = addNetworkProperties.passphrase
+                 if (addNetworkProperties.caCert) {
+                     dialog.network.caCert = addNetworkProperties.caCert
+                 } else if (addNetworkProperties.caCertFile) {
 diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/settings.qml
 --- a/usr/share/jolla-settings/settings.qml	2023-03-28 08:26:18.094183631 +0200
-+++ b/usr/share/jolla-settings/settings.qml	2023-03-28 11:44:33.159920090 +0200
-@@ -99,73 +99,128 @@
++++ b/usr/share/jolla-settings/settings.qml	2023-03-28 14:32:25.745262585 +0200
+@@ -99,6 +99,40 @@
              window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true })
          }
  
--        function importVpn(args) {
--            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/vpn/mainpage.qml"), { "importPath": args[1], "importMime": args[0] })
 +        function showAddNetworkDialogFromQR(code) {
 +            console.debug("called")
 +            var scheme = /^wifi:/i;
-+            if (scheme.test(code)) {
++            if (!scheme.test(code)) {
++                showAddNetworkDialog()
++            } else {
 +                console.info("Trying to add network from QR code:")
-+                // 'wifi:S:sApname;T:sType;P:sPassword;H:bHidden;I:EAPsIdentity;H:sEAPMethod;PH2:sEAPPhase2'
++                // 'wifi:S:sApname;T:sType;P:sPassword;H:bHidden;I:EAPsIdentity;HbHidden;S::sEAPMethod;PH2:sEAPPhase2'
 +                // T: WEP or WPA or WPA2-EAP, or nopass
++                // TODO/FIXME: type muas probably submitted including the Method, e.g "WPA-EAP (TTLS)"
 +                var tokens = code.replace(scheme,'').split(';');
 +                console.info("Tokens are:", tokens.join(','))
 +                var codes = {}
@@ -22,169 +75,22 @@ diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/se
 +                    if (pair.length < 2) continue;
 +                    console.info("Tokens made pair:", pair.join(','))
 +                    if (pair && pair[1]) pair[1].replace(/\\/g,''); // special chars are/may be backslash-escaped
-+                    codes[pair[0]] = pair[1];
++                    if (pair && pair[1] && pair[1].length > 0) codes[pair[0]] = pair[1];
 +                }
-+                var network = {
++                var nwconfig = {
 +                    ssid:         codes["S"],
 +                    securityType: codes["T"],
 +                    passphrase:   codes["P"],
 +                    identity:     codes["I"],
-+                    hidden:       codes["H"],
-+                    eapmethod:    codes["E"],
-+                    eapphase2:    codes["PH2"]
++                    hidden:       (codes["H"] === "true"),
++                    eapMethod:    codes["E"],
++                    phase2:       codes["PH2"]
 +                }
-+                var network = {
-+                    ssid:         codes["S"],
-+                    securityType: codes["T"],
-+                    passphrase:   codes["P"],
-+                    identity:     codes["I"],
-+                    hidden:       codes["H"],
-+                    eapmethod:    codes["E"],
-+                    eapphase2:    codes["PH2"]
-+                }
-+                console.debug("Determined settings:", JSON.stringify(network,null,2))
-+                var comp = Qt.createComponent("/usr/share/jolla-settings/pages/wlan/AddNetworkDialog.qml");
-+                if (comp.status !== Component.Ready) {
-+                    console.warn("Cannot load AddNetworkDialog.qml: " + comp.errorString())
-+                    return
-+                }
-+                var dlg = comp.createObject(window, {'network': network})
-+                if (dlg === null) {
-+                    console.warn("Unable to instantiate AddNetworkDialog.qml")
-+                    return
-+                }
-+                // dlg.setup(ssid, securityType, identity, passphrase)
-+                //window.showSettingsPage("system_settings", dlg, network)
-+                window.showSettingsPage("system_settings", dlg, network)
-+                //showAddNetworkDialog()
-+            } else {
-+                showAddNetworkDialog()
++                console.info("Determined settings:", JSON.stringify(nwconfig,null,2))
++                window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true, "settingsInput": nwconfig })
 +            }
++        }
++
+         function importVpn(args) {
+             window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/vpn/mainpage.qml"), { "importPath": args[1], "importMime": args[0] })
          }
- 
--        function findBluetoothDevices() {
--            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/bluetooth/bluetoothSettings.qml"))
--            pageStack.currentPage.autoStartDiscovery()
--        }
-+                    function importVpn(args) {
-+                            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/vpn/mainpage.qml"), { "importPath": args[1], "importMime": args[0] })
-+                    }
- 
--        function newVpnConnection() {
--            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/vpn/mainpage.qml"))
--            pageStack.push(Qt.resolvedUrl("pages/vpn/NewConnectionDialog.qml"), {}, PageStackAction.Immediate)
--        }
-+                    function findBluetoothDevices() {
-+                            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/bluetooth/bluetoothSettings.qml"))
-+                            pageStack.currentPage.autoStartDiscovery()
-+                    }
- 
--        function showAmbienceSettings(ambienceContentId) {
--            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/jolla-gallery-ambience/ambience.qml"), {})
--            pageStack.push("com.jolla.gallery.ambience.AmbienceSettingsPage", { "contentId": ambienceContentId }, PageStackAction.Immediate)
--        }
-+                    function newVpnConnection() {
-+                            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/vpn/mainpage.qml"))
-+                            pageStack.push(Qt.resolvedUrl("pages/vpn/NewConnectionDialog.qml"), {}, PageStackAction.Immediate)
-+                    }
- 
--        function importWebcal(path) {
--            var comp = Qt.createComponent("/usr/share/accounts/ui/webcal.qml")
--            if (comp.status !== Component.Ready) {
--                console.warn("Cannot load webcal.qml: " + comp.errorString())
--                return
--            }
--            var agent = comp.createObject(window, {'remoteUrl': path})
--            if (agent === null) {
--                console.warn("Unable to instantiate webcal.qml")
--                return
--            }
--            showAccounts()
--            if (pageStack.currentPage.backNavigation) {
--                // We're not busy and can show the account page.
--                agent.endDestination = pageStack.currentPage
--                agent.endDestinationAction = PageStackAction.Pop
--                pageStack.push(agent.initialPage, {}, PageStackAction.Immediate)
--            }
--        }
-+                    function showAmbienceSettings(ambienceContentId) {
-+                            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/jolla-gallery-ambience/ambience.qml"), {})
-+                            pageStack.push("com.jolla.gallery.ambience.AmbienceSettingsPage", { "contentId": ambienceContentId }, PageStackAction.Immediate)
-+                    }
- 
--        function addNewUser() {
--            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/users/users.qml"), { "enableUserCreationOnceComplete": true })
--        }
-+                    function importWebcal(path) {
-+                            var comp = Qt.createComponent("/usr/share/accounts/ui/webcal.qml")
-+                            if (comp.status !== Component.Ready) {
-+                                    console.warn("Cannot load webcal.qml: " + comp.errorString())
-+                                    return
-+                            }
-+                            var agent = comp.createObject(window, {'remoteUrl': path})
-+                            if (agent === null) {
-+                                    console.warn("Unable to instantiate webcal.qml")
-+                                    return
-+                            }
-+                            showAccounts()
-+                            if (pageStack.currentPage.backNavigation) {
-+                                    // We're not busy and can show the account page.
-+                                    agent.endDestination = pageStack.currentPage
-+                                    agent.endDestinationAction = PageStackAction.Pop
-+                                    pageStack.push(agent.initialPage, {}, PageStackAction.Immediate)
-+                            }
-+                    }
- 
--        function showPage(path) {
--            path = path.toString()
--            var obj = _mainPage.objectForPath(path)
--            if (obj) {
--                if (obj.type === "page") {
--                    var params = obj.data()["params"]
--
--                    if (params["source"]) {
--                        window.showSettingsPage(path, params["source"])
--                    } else {
--                        console.warn("Settings app requested to show settings page, but no page source defined for the config '" + path + "'")
-+                    function addNewUser() {
-+                            window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/users/users.qml"), { "enableUserCreationOnceComplete": true })
-                     }
--                } else {
--                    console.warn("Settings app requested to show a settings page, but the config '" + path + "' is of wrong type '" + obj.type + "'")
--                }
--            } else {
--                console.warn("Settings app requested to show settings page, but no config found for path", path)
--            }
--        }
- 
--        function activateWindow(arg) {
--            window.activate()
--        }
--    }
-+                    function showPage(path) {
-+                            path = path.toString()
-+                            var obj = _mainPage.objectForPath(path)
-+                            if (obj) {
-+                                    if (obj.type === "page") {
-+                                            var params = obj.data()["params"]
-+
-+                                            if (params["source"]) {
-+                                                    window.showSettingsPage(path, params["source"])
-+                                            } else {
-+                                                    console.warn("Settings app requested to show settings page, but no page source defined for the config '" + path + "'")
-+                                            }
-+                                    } else {
-+                                            console.warn("Settings app requested to show a settings page, but the config '" + path + "' is of wrong type '" + obj.type + "'")
-+                                    }
-+                            } else {
-+                                    console.warn("Settings app requested to show settings page, but no config found for path", path)
-+                            }
-+                    }
-+
-+                    function activateWindow(arg) {
-+                            window.activate()
-+                    }
-+            }
- 
-     DBusAdaptor {
-         path: "/share_signing_keys"
