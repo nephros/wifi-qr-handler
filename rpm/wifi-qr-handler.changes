@@ -1,3 +1,6 @@
+* Tue Mar 28 2023 Nephros <sailfish@nephros.org> - 0.5.0
+- move code handling into mainpage.qml
+
 * Tue Mar 28 2023 Nephros <sailfish@nephros.org> - 0.4.1
 - first working beta
 
