@@ -1,31 +1,85 @@
 diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-settings/pages/wlan/mainpage.qml
 --- a/usr/share/jolla-settings/pages/wlan/mainpage.qml	2023-03-28 13:28:54.759998828 +0200
-+++ b/usr/share/jolla-settings/pages/wlan/mainpage.qml	2023-03-28 15:11:32.893345264 +0200
-@@ -15,6 +15,7 @@
-     property var _errorPlaceholder
++++ b/usr/share/jolla-settings/pages/wlan/mainpage.qml	2023-03-28 17:56:43.157634377 +0200
+@@ -16,6 +16,40 @@
      property bool showAddNetworkDialog
      property bool pageReady
-+    property var settingsInput
  
++    property string codeString
++
++    function parseCodeString(code) {
++        /* See also: https://github.com/zxing/zxing/wiki/Barcode-Contents
++         *
++         * 'wifi:S:sApname;T:sType;P:sPassword;H:bHidden;I:sEAPIdentity;H:bHidden;E:sEAPMethod;PH2:sEAPPhase2'
++         * S: SSID
++         * T: WEP or WPA or WPA2-EAP or nopass
++         * E: TTLS or PWD
++         *
++         */
++        // NB: "code" is an url, not a string
++        var scheme = /^wifi:/i;
++        var escaped = /\\[\\;,":]/g; // may be backslash-escaped
++        var tokens = code.toString().replace(scheme,'').split(';');
++        var codes = {}
++        for (var i=0; i < tokens.length; ++i) {
++            var pair = tokens[i].split(':')
++            if (pair.length < 2) continue; // empty value --> undefined
++            if (pair && pair[1] && pair[1].length > 0) codes[pair[0]] = pair[1].replace(escaped, '');
++        }
++        var nwconfig = {
++            ssid:         codes["S"],
++            securityType: codes["T"],
++            passphrase:   codes["P"],
++            anon:         codes["A"],
++            identity:     codes["I"],
++            hidden:       (codes["H"] === "true"),
++            eapMethod:    codes["E"],
++            phase2:       codes["PH2"]
++        }
++        return nwconfig
++    }
++
      onStatusChanged: {
          if (status == PageStatus.Active) {
-@@ -24,15 +25,29 @@
+             pageReady = true
+@@ -24,15 +58,44 @@
  
                  var addNetworkProperties = networkHelper.readSettings()
                  var dialog = pageStack.push(Qt.resolvedUrl("AddNetworkDialog.qml"), { networkManager: networkManager }, PageStackAction.Immediate)
 -                dialog.network.ssid = addNetworkProperties.ssid
 -                dialog.network.hidden = addNetworkProperties.hidden
 -                dialog.network.securityType = addNetworkProperties.securityType
-+                if (settingsInput !== undefined) {
-+                    dialog.network.ssid = settingsInput.ssid
-+                    dialog.network.hidden = settingsInput.hidden
-+                    dialog.network.passphrase = settingsInput.passphrase
-+                    switch ( settingsInput.securityType ) {
-+                        case "nopass":      dialog.network.securityType = NetworkService.SecurityNone; break;
-+                        case "WEP":         dialog.network.securityType = NetworkService.SecurityWEP; break;
-+                        case "WPA":         dialog.network.securityType = NetworkService.SecurityPSK; break;
-+                        case "WPA2-EAP":    dialog.network.securityType = NetworkService.SecurityIEEE802; break;
-+                        default:            dialog.network.securityType = NetworkService.SecurityPSK; break;
+-                if (addNetworkProperties.eapMethod !== undefined)
+-                    dialog.network.eapMethod = addNetworkProperties.eapMethod
+-                if (addNetworkProperties.phase2)
+-                    dialog.network.phase2 = addNetworkProperties.phase2
+-                dialog.network.identity = addNetworkProperties.identity
+-                dialog.network.passphrase = addNetworkProperties.passphrase
++                var providedSettings
++                if (codeString !== undefined)
++                    providedSettings = parseCodeString(codeString)
++                if (providedSettings !== undefined) {
++                    dialog.network.ssid = providedSettings.ssid
++                    dialog.network.hidden = providedSettings.hidden
++                    dialog.network.passphrase = providedSettings.passphrase
++                    switch ( providedSettings.securityType ) {
++                        case "nopass":   dialog.network.securityType = NetworkService.SecurityNone; break;
++                        case "WEP":      dialog.network.securityType = NetworkService.SecurityWEP; break;
++                        case "WPA":      dialog.network.securityType = NetworkService.SecurityPSK; break;
++                        case "WPA2-EAP": dialog.network.securityType = NetworkService.SecurityIEEE802
++                                         dialog.network.identity     = providedSettings.identity
++                                         // not supported by dialog?
++                                         dialog.network.anonymousIdentity = providedSettings.anon
++                                         switch (providedSettings.eapMethod) {
++                                             case "TLS":  dialog.network.eapMethod = NetworkService.EapTLS; break;
++                                             case "TTLS": dialog.network.eapMethod = NetworkService.EapTTLS; break;
++                                             case "PEAP": dialog.network.eapMethod = NetworkService.EapPEAP; break;
++                                             case "PWD":  dialog.network.eapMethod = NetworkService.EapPEAP; break;
++                                             default:     dialog.network.eapMethod = NetworkService.EapNone; break;
++                                         }
++                                         dialog.network.anonymousIdentity = providedSettings.anon
++                                         break;
++                        default:         dialog.network.securityType = NetworkService.SecurityPSK; break;
 +                    }
 +                    // FIXME: add EAP parameters as well
 +                } else {
@@ -33,61 +87,29 @@ diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-
 +                    dialog.network.hidden = addNetworkProperties.hidden
 +                    dialog.network.securityType = addNetworkProperties.securityType
 +                    dialog.network.passphrase = addNetworkProperties.passphrase
++                    if (addNetworkProperties.eapMethod !== undefined)
++                        dialog.network.eapMethod = addNetworkProperties.eapMethod
++                    if (addNetworkProperties.phase2)
++                        dialog.network.phase2 = addNetworkProperties.phase2
++                    dialog.network.identity = addNetworkProperties.identity
 +                }
-                 if (addNetworkProperties.eapMethod !== undefined)
-                     dialog.network.eapMethod = addNetworkProperties.eapMethod
-                 if (addNetworkProperties.phase2)
-                     dialog.network.phase2 = addNetworkProperties.phase2
-                 dialog.network.identity = addNetworkProperties.identity
--                dialog.network.passphrase = addNetworkProperties.passphrase
                  if (addNetworkProperties.caCert) {
                      dialog.network.caCert = addNetworkProperties.caCert
                  } else if (addNetworkProperties.caCertFile) {
 diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/settings.qml
 --- a/usr/share/jolla-settings/settings.qml	2023-03-28 08:26:18.094183631 +0200
-+++ b/usr/share/jolla-settings/settings.qml	2023-03-28 15:58:27.359777386 +0200
-@@ -99,6 +99,47 @@
++++ b/usr/share/jolla-settings/settings.qml	2023-03-28 17:56:46.425613856 +0200
+@@ -99,6 +99,16 @@
              window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true })
          }
  
 +        function showAddNetworkDialogFromQR(code) {
-+            console.debug("called")
-+            var scheme = /^wifi:/i;
-+            // NB: "code" is an url, not a string
-+            if (!scheme.test(code.toString())) {
++            const scheme = /^wifi:/i;
++            if (!scheme.test(code.toString())) { // "code" is an url, not a string
 +                showAddNetworkDialog()
 +            } else {
-+                /* See also: https://github.com/zxing/zxing/wiki/Barcode-Contents
-+                 *
-+                 * 'wifi:S:sApname;T:sType;P:sPassword;H:bHidden;I:sEAPIdentity;H:bHidden;E:sEAPMethod;PH2:sEAPPhase2'
-+                 * S: SSID
-+                 * T: WEP or WPA or WPA2-EAP, or nopass
-+                 * E: TTLS or PWD
-+                 *
-+                 *  FIXME: #1 the split breaks if any of the fields contain (escaped) colons.
-+                 *  FIXME: #2 the split breaks if any of the fields contain (escaped) semi-colons.
-+                 *  FIXME: #3 cleaning the escaping backslashes will also remove a double-backslash
-+                 */
 +                console.info("Adding Wi-Fi network from QR code")
-+                var tokens = code.toString().replace(scheme,'').split(';');
-+                var codes = {}
-+                for (var i=0; i<tokens.length; ++i) {
-+                    var pair = tokens[i].split(':')
-+                    if (pair.length < 2) continue;
-+                    if (pair && pair[1]) pair[1].replace(/\\/g,''); // special chars are/may be backslash-escaped
-+                    if (pair && pair[1] && pair[1].length > 0) codes[pair[0]] = pair[1];
-+                }
-+                var nwconfig = {
-+                    ssid:         codes["S"],
-+                    securityType: codes["T"],
-+                    passphrase:   codes["P"],
-+                    anon:         codes["A"],
-+                    identity:     codes["I"],
-+                    hidden:       (codes["H"] === "true"),
-+                    eapMethod:    codes["E"],
-+                    phase2:       codes["PH2"]
-+                }
-+                window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true, "settingsInput": nwconfig })
++                window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true, "codeString": code })
 +            }
 +        }
 +
