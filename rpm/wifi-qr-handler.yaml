@@ -56,6 +56,7 @@ Requires:
 Configure: none
 Builder: none
 NoIconCache: true
+UpdateDesktopDB: true
 BuildArch: noarch
 Files:
   - '%{_datadir}/applications/%{name}.desktop'

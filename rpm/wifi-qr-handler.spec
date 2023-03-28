@@ -20,6 +20,8 @@ Source100:  wifi-qr-handler.yaml
 Source101:  wifi-qr-handler-rpmlintrc
 Requires:   jolla-settings >= 1.1.15.1
 Requires:   jolla-settings-networking >= 1.0.1.1
+Requires(post): %{_bindir}/update-desktop-database
+Requires(postun): %{_bindir}/update-desktop-database
 BuildRequires:  desktop-file-utils
 
 %description
@@ -57,6 +59,12 @@ popd
 desktop-file-install --delete-original       \
   --dir %{buildroot}%{_datadir}/applications             \
    %{buildroot}%{_datadir}/applications/*.desktop
+
+%post
+update-desktop-database %{_datadir}/applications &> /dev/null || :
+
+%postun
+update-desktop-database %{_datadir}/applications &> /dev/null || :
 
 %files
 %defattr(-,root,root,-)
