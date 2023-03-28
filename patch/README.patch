@@ -1,16 +1,19 @@
-#
-# the actual source files are not included to avoid issues with copyright and
-# licensing. IANAL but publishing a patch modification is one thing, publishing the
-# whole thing another.
-#
-# To make changes:
-#   mkdir -p a/usr/share/jolla-settings
-#   cp /usr/share/jolla-settings/settings.qml a/usr/share/jolla-settings/settings.qml
-#   cp -r a b
-#   patch -p1 -d b/ < unified_diff.patch
+README.patches
 
-# now edit b/foo
-# finally do 'make' to update the diff
-#
-# don't forget to increase version and compatability tags in patch.json
+The actual source files are not included to avoid issues with copyright and
+licensing. IANAL but publishing a patch modification is one thing, publishing the
+whole thing another.
+
+To make changes:
+
+    mkdir -p a/usr/share/jolla-settings
+    cp /usr/share/jolla-settings/settings.qml a/usr/share/jolla-settings/settings.qml
+    cp /usr/share/jolla-settings/pages/wlan/mainpage.qml a/usr/share/jolla-settings/pages/wlan/mainpage.qml
+    cp -r a b
+    patch -p1 -d b/ < unified_diff.patch
+
+Now edit b/foo.
+
+Finally do 'make' to update the diff.
+Don't forget to increase version and compatability tags in patch.json
 
