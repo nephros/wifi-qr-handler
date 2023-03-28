@@ -60,6 +60,7 @@ desktop-file-install --delete-original       \
 %files
 %defattr(-,root,root,-)
 %{_datadir}/applications/%{name}.desktop
+%dir %{_datadir}/patchmanager/patches/patch-settings-%{name
 %{_datadir}/patchmanager/patches/patch-settings-%{name}/patch.json
 %{_datadir}/patchmanager/patches/patch-settings-%{name}/unified_diff.patch
 # >> files
