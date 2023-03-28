@@ -1,6 +1,6 @@
 diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-settings/pages/wlan/mainpage.qml
 --- a/usr/share/jolla-settings/pages/wlan/mainpage.qml	2023-03-28 13:28:54.759998828 +0200
-+++ b/usr/share/jolla-settings/pages/wlan/mainpage.qml	2023-03-28 14:45:44.761152640 +0200
++++ b/usr/share/jolla-settings/pages/wlan/mainpage.qml	2023-03-28 15:11:32.893345264 +0200
 @@ -15,6 +15,7 @@
      property var _errorPlaceholder
      property bool showAddNetworkDialog
@@ -9,22 +9,9 @@ diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-
  
      onStatusChanged: {
          if (status == PageStatus.Active) {
-@@ -23,16 +24,36 @@
-                 showAddNetworkDialog = false
+@@ -24,15 +25,29 @@
  
                  var addNetworkProperties = networkHelper.readSettings()
-+                if (settingsInput !== undefined) {
-+                    console.info("read config:", JSON.stringify(addNetworkProperties, null, 2));
-+                    console.info("input config:", JSON.stringify(settingsInput, null, 2));
-+                }
-+                //    addNetworkProperties.ssid         = settingsInput.ssid
-+                //    //addNetworkProperties.securityType = settingsInput.securityType
-+                //    addNetworkProperties.passphrase   = settingsInput.passphrase
-+                //    //addNetworkProperties.identity     = settingsInput.identity
-+                //    //addNetworkProperties.hidden       = settingsInput.hidden
-+                //    //addNetworkProperties.eapMethod    = settingsInput.eapMethod
-+                //    //addNetworkProperties.phase2       = settingsInput.phase2
-+                //}
                  var dialog = pageStack.push(Qt.resolvedUrl("AddNetworkDialog.qml"), { networkManager: networkManager }, PageStackAction.Immediate)
 -                dialog.network.ssid = addNetworkProperties.ssid
 -                dialog.network.hidden = addNetworkProperties.hidden
@@ -32,9 +19,15 @@ diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-
 +                if (settingsInput !== undefined) {
 +                    dialog.network.ssid = settingsInput.ssid
 +                    dialog.network.hidden = settingsInput.hidden
-+                    // FIXME
-+                    dialog.network.securityType = NetworkService.SecurityPSK
 +                    dialog.network.passphrase = settingsInput.passphrase
++                    switch ( settingsInput.securityType ) {
++                        case "nopass":      dialog.network.securityType = NetworkService.SecurityNone; break;
++                        case "WEP":         dialog.network.securityType = NetworkService.SecurityWEP; break;
++                        case "WPA":         dialog.network.securityType = NetworkService.SecurityPSK; break;
++                        case "WPA2-EAP":    dialog.network.securityType = NetworkService.SecurityIEEE802; break;
++                        default:            dialog.network.securityType = NetworkService.SecurityPSK; break;
++                    }
++                    // FIXME: add EAP parameters as well
 +                } else {
 +                    dialog.network.ssid = addNetworkProperties.ssid
 +                    dialog.network.hidden = addNetworkProperties.hidden
@@ -52,28 +45,29 @@ diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-
                  } else if (addNetworkProperties.caCertFile) {
 diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/settings.qml
 --- a/usr/share/jolla-settings/settings.qml	2023-03-28 08:26:18.094183631 +0200
-+++ b/usr/share/jolla-settings/settings.qml	2023-03-28 14:32:25.745262585 +0200
-@@ -99,6 +99,40 @@
++++ b/usr/share/jolla-settings/settings.qml	2023-03-28 14:59:31.858066005 +0200
+@@ -99,6 +99,41 @@
              window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true })
          }
  
 +        function showAddNetworkDialogFromQR(code) {
 +            console.debug("called")
 +            var scheme = /^wifi:/i;
-+            if (!scheme.test(code)) {
++            // NB: "code" is an url, not a string
++            if (!scheme.test(code.toString())) {
 +                showAddNetworkDialog()
 +            } else {
-+                console.info("Trying to add network from QR code:")
++                console.info("Trying to add network from QR code")
 +                // 'wifi:S:sApname;T:sType;P:sPassword;H:bHidden;I:EAPsIdentity;HbHidden;S::sEAPMethod;PH2:sEAPPhase2'
 +                // T: WEP or WPA or WPA2-EAP, or nopass
 +                // TODO/FIXME: type muas probably submitted including the Method, e.g "WPA-EAP (TTLS)"
-+                var tokens = code.replace(scheme,'').split(';');
-+                console.info("Tokens are:", tokens.join(','))
++                var tokens = code.toString().replace(scheme,'').split(';');
++                //console.info("Tokens are:", tokens.join(','))
 +                var codes = {}
 +                for (var i=0; i<tokens.length; ++i) {
 +                    var pair = tokens[i].split(':')
 +                    if (pair.length < 2) continue;
-+                    console.info("Tokens made pair:", pair.join(','))
++                    //console.info("Tokens made pair:", pair.join(','))
 +                    if (pair && pair[1]) pair[1].replace(/\\/g,''); // special chars are/may be backslash-escaped
 +                    if (pair && pair[1] && pair[1].length > 0) codes[pair[0]] = pair[1];
 +                }
@@ -86,7 +80,7 @@ diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/se
 +                    eapMethod:    codes["E"],
 +                    phase2:       codes["PH2"]
 +                }
-+                console.info("Determined settings:", JSON.stringify(nwconfig,null,2))
++                //console.info("Determined settings:", JSON.stringify(nwconfig,null,2))
 +                window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true, "settingsInput": nwconfig })
 +            }
 +        }
