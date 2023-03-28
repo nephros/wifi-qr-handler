@@ -1,7 +1,7 @@
 diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/settings.qml
 --- a/usr/share/jolla-settings/settings.qml	2023-03-28 08:26:18.094183631 +0200
-+++ b/usr/share/jolla-settings/settings.qml	2023-03-28 11:04:21.052482220 +0200
-@@ -99,73 +99,125 @@
++++ b/usr/share/jolla-settings/settings.qml	2023-03-28 11:44:33.159920090 +0200
+@@ -99,73 +99,128 @@
              window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/wlan/mainpage.qml"), { "showAddNetworkDialog": true })
          }
  
@@ -11,15 +11,18 @@ diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/se
 +            console.debug("called")
 +            var scheme = /^wifi:/i;
 +            if (scheme.test(code)) {
-+                console.debug("Trying to add from QR code:", code)
++                console.info("Trying to add network from QR code:")
 +                // 'wifi:S:sApname;T:sType;P:sPassword;H:bHidden;I:EAPsIdentity;H:sEAPMethod;PH2:sEAPPhase2'
 +                // T: WEP or WPA or WPA2-EAP, or nopass
 +                var tokens = code.replace(scheme,'').split(';');
-+                console.debug("Tokens are", tokens.join(','))
++                console.info("Tokens are:", tokens.join(','))
 +                var codes = {}
 +                for (var i=0; i<tokens.length; ++i) {
-+                    var pair=tokens[i].split(':')
-+                    codes[pair[0]] = pair[1].replace('\\',''); // special chars are/may be backslash-escaped
++                    var pair = tokens[i].split(':')
++                    if (pair.length < 2) continue;
++                    console.info("Tokens made pair:", pair.join(','))
++                    if (pair && pair[1]) pair[1].replace(/\\/g,''); // special chars are/may be backslash-escaped
++                    codes[pair[0]] = pair[1];
 +                }
 +                var network = {
 +                    ssid:         codes["S"],

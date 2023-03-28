@@ -38,7 +38,7 @@ Description: |
 #        - https://openrepos.net/donate
 #    %endif
 
-SetupOptions: -q -n %{name}-%{version}/upstream
+#SetupOptions: -q -n %{name}-%{version}/upstream
 RpmLintIgnore:
   - 'summary-too-long'
   - 'no-changelogname-tag'
@@ -49,6 +49,7 @@ RpmLintIgnore:
 #  - 'baz'
 Requires:
    - jolla-settings >= 1.1.15.1
+   - jolla-settings-networking >= 1.0.1.1
 #PkgBR:
 #PkgConfigBR:
 #    - ^^^
@@ -58,6 +59,6 @@ NoIconCache: true
 BuildArch: noarch
 Files:
   - '%{_datadir}/applications/%{name}.desktop'
-  - '%dir %{_datadir}/patchmanager/patches/patch-settings-%{name'
+  - '%dir %{_datadir}/patchmanager/patches/patch-settings-%{name}'
   - '%{_datadir}/patchmanager/patches/patch-settings-%{name}/patch.json'
   - '%{_datadir}/patchmanager/patches/patch-settings-%{name}/unified_diff.patch'

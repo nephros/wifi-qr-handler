@@ -19,6 +19,7 @@ Source0:    %{name}-%{version}.tar.gz
 Source100:  wifi-qr-handler.yaml
 Source101:  wifi-qr-handler-rpmlintrc
 Requires:   jolla-settings >= 1.1.15.1
+Requires:   jolla-settings-networking >= 1.0.1.1
 BuildRequires:  desktop-file-utils
 
 %description
@@ -26,7 +27,7 @@ BuildRequires:  desktop-file-utils
 
 
 %prep
-%setup -q -n %{name}-%{version}/upstream
+%setup -q -n %{name}-%{version}
 
 # >> setup
 # << setup
@@ -60,7 +61,7 @@ desktop-file-install --delete-original       \
 %files
 %defattr(-,root,root,-)
 %{_datadir}/applications/%{name}.desktop
-%dir %{_datadir}/patchmanager/patches/patch-settings-%{name
+%dir %{_datadir}/patchmanager/patches/patch-settings-%{name}
 %{_datadir}/patchmanager/patches/patch-settings-%{name}/patch.json
 %{_datadir}/patchmanager/patches/patch-settings-%{name}/unified_diff.patch
 # >> files
