@@ -9,7 +9,7 @@ Name:       wifi-qr-handler
 # << macros
 
 Summary:    register WIFI scheme and open Settings
-Version:    0.1.0
+Version:    0.2.0
 Release:    0
 Group:      Applications
 License:    ASL 2.0
@@ -18,6 +18,7 @@ URL:        https://github.com/nephros/wifi-qr-handler
 Source0:    %{name}-%{version}.tar.gz
 Source100:  wifi-qr-handler.yaml
 Source101:  wifi-qr-handler-rpmlintrc
+Requires:   jolla-settings >= 1.1.15.1
 BuildRequires:  desktop-file-utils
 
 %description
@@ -43,6 +44,10 @@ BuildRequires:  desktop-file-utils
 rm -rf %{buildroot}
 # >> install pre
 install -m 644 -D %{name}.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
+pushd patch
+install -m 644 -D patch.json         %{buildroot}%{_datadir}/patchmanager/patches/patch-settings-%{name}/patch.json
+install -m 644 -D unified_diff.patch %{buildroot}%{_datadir}/patchmanager/patches/patch-settings-%{name}/unified_diff.patch
+popd
 # << install pre
 
 # >> install post
@@ -55,5 +60,7 @@ desktop-file-install --delete-original       \
 %files
 %defattr(-,root,root,-)
 %{_datadir}/applications/%{name}.desktop
+%{_datadir}/patchmanager/patches/patch-settings-%{name}/patch.json
+%{_datadir}/patchmanager/patches/patch-settings-%{name}/unified_diff.patch
 # >> files
 # << files

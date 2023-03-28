@@ -1,6 +1,6 @@
 Name: wifi-qr-handler
 Summary: register WIFI scheme and open Settings
-Version: 0.1.0
+Version: 0.2.0
 Release: 0
 Group: Applications
 License: ASL 2.0
@@ -48,20 +48,15 @@ RpmLintIgnore:
 #Patches:
 #  - 'baz'
 Requires:
-PkgBR:
+   - jolla-settings >= 1.1.15.1
+#PkgBR:
 #PkgConfigBR:
 #    - ^^^
 Configure: none
 Builder: none
 NoIconCache: true
 BuildArch: noarch
-#AutoSubPackages:
-#  - doc
 Files:
   - '%{_datadir}/applications/%{name}.desktop'
-  # '%{_datadir}/icons/*/*/apps/%{name}.png'
-  # '%{_datadir}/icons/*/*/apps/%{name}.svg'
-  # '%{_datadir}/themes/sailfish-default/meegotouch/*/icons/*.png'
-  # '%dir %{_datadir}/%{name}'
-  # '%{_datadir}/%{name}/translations/*.qm'
-  # '%{_datadir}/%{name}/qml/*'
+  - '%{_datadir}/patchmanager/patches/patch-settings-%{name}/patch.json'
+  - '%{_datadir}/patchmanager/patches/patch-settings-%{name}/unified_diff.patch'

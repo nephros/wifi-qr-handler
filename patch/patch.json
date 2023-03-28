@@ -1,0 +1,12 @@
+{
+  "name": "patch-settings-wifi-qr-handler",
+  "display_name": "Settings: Support WLAN QR Codes",
+  "description": "",
+  "category": "settings",
+  "author": "nephros",
+  "version": "1.0.0",
+  "compatible": [
+    "4.4.0.72",
+    "4.5.0.19"
+  ]
+}

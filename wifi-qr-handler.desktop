@@ -2,16 +2,22 @@
 Type=Application
 Icon=icon-m-wlan
 Name=Add Wifi Network
-X-MeeGo-Logical-Id=settings-ap-name
-X-MeeGo-Translation-Catalog=settings
-MimeType=x-scheme-handler/wifi;
+MimeType=x-scheme-handler/wifi;x-scheme-handler/WIFI;
+
+# Translations:
+#X-MeeGo-Logical-Id=settings-ap-name
+# L10N Catalog: from /usr/share/jolla-settings/entries/wlan.json
+X-MeeGo-Translation-Catalog=settings-network
+# L10N ID: from /usr/share/jolla-settings/pages/wlan/AddNetworkDialog.qml:92
+X-MeeGo-Logical-Id=settings_network-he-add_network
+
+# DBus call to Settings, needs patch ATM for the method:
 X-Maemo-Service=com.jolla.settings
 X-Maemo-Object-Path=/com/jolla/settings/ui
-X-Maemo-Method=com.jolla.settings.ui.showAddNetworkDialog
-# make sure we pass NO args
-X-Maemo-Fixed-Args=
+X-Maemo-Method=com.jolla.settings.ui.showAddNetworkDialogFromQR
+#X-Maemo-Fixed-Args='';
 #X-Maemo-Method=com.jolla.settings.ui.openPage
-# parms: 'system_settings/connectivity/wlan'"
+#X-Maemo-Fixed-Args=system_settings/connectivity/wlan;
 
 NotShowIn=X-MeeGo;
 Hidden=true
