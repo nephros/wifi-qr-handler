@@ -1,6 +1,12 @@
+* Tue Mar 28 2023 Nephros <sailfish@nephros.org> - 0.4.1
+- first working beta
+
+* Tue Mar 28 2023 Nephros <sailfish@nephros.org> - 0.4.0
+- first working alpha
+
 * Tue Mar 28 2023 Nephros <sailfish@nephros.org> - 0.3.0
 - replicate the whole creation process in the function
--  drop that concept, patch the wlan mainpage instead
+- drop that concept, patch the wlan mainpage instead
 
 * Tue Mar 28 2023 Nephros <sailfish@nephros.org> - 0.2.0
 - include a patch for Settings
