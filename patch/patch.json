@@ -4,7 +4,7 @@
   "description": "",
   "category": "settings",
   "author": "nephros",
-  "version": "1.0.0",
+  "version": "0.5.0",
   "compatible": [
     "4.4.0.72",
     "4.5.0.19"
