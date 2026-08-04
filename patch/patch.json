@@ -1,11 +1,16 @@
 {
   "name": "patch-settings-wifi-qr-handler",
   "display_name": "Settings: Support WLAN QR Codes",
-  "description": "",
+  "description": "Adds the capability to Settings to handle WLAN credentials encoded in QR codes or NFC tags etc.",
   "category": "settings",
   "author": "nephros",
   "version": "0.5.1",
   "compatible": [
-    "5.0.0.70"
+    "5.0.0.70",
+    "5.0.0.78",
+    "5.1.0.11",
+    "5.2.0.14",
+    "5.2.0.15",
+    "5.2.0.16"
   ]
 }
