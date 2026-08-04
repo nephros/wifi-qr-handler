@@ -1,6 +1,6 @@
-diff -Naur 5.0/usr/share/jolla-settings/pages/wlan/mainpage.qml 5.0_mine/usr/share/jolla-settings/pages/wlan/mainpage.qml
---- 5.0/usr/share/jolla-settings/pages/wlan/mainpage.qml	2025-09-12 07:49:25.656822346 +0200
-+++ 5.0_mine/usr/share/jolla-settings/pages/wlan/mainpage.qml	2025-09-12 07:56:23.405938668 +0200
+diff -Naur a/usr/share/jolla-settings/pages/wlan/mainpage.qml b/usr/share/jolla-settings/pages/wlan/mainpage.qml
+--- a/usr/share/jolla-settings/pages/wlan/mainpage.qml	2026-08-04 09:36:21.457031628 +0200
++++ b/usr/share/jolla-settings/pages/wlan/mainpage.qml	2026-08-04 09:36:48.381049307 +0200
 @@ -16,6 +16,40 @@
      property bool showAddNetworkDialog
      property bool pageReady
@@ -98,9 +98,9 @@ diff -Naur 5.0/usr/share/jolla-settings/pages/wlan/mainpage.qml 5.0_mine/usr/sha
                      dialog.network.caCert = addNetworkProperties.caCert
                  } else if (addNetworkProperties.caCertFile) {
                      dialog.network.caCertFile = addNetworkProperties.caCertFile
-diff -Naur 5.0/usr/share/jolla-settings/settings.qml 5.0_mine/usr/share/jolla-settings/settings.qml
---- 5.0/usr/share/jolla-settings/settings.qml	2025-09-12 07:51:18.066377181 +0200
-+++ 5.0_mine/usr/share/jolla-settings/settings.qml	2025-09-12 07:51:44.914882461 +0200
+diff -Naur a/usr/share/jolla-settings/settings.qml b/usr/share/jolla-settings/settings.qml
+--- a/usr/share/jolla-settings/settings.qml	2026-08-04 09:36:21.449031623 +0200
++++ b/usr/share/jolla-settings/settings.qml	2026-08-04 09:36:48.385049310 +0200
 @@ -99,6 +99,16 @@
                                      { "showAddNetworkDialog": true })
          }
@@ -118,4 +118,3 @@ diff -Naur 5.0/usr/share/jolla-settings/settings.qml 5.0_mine/usr/share/jolla-se
          function importVpn(args) {
              window.showSettingsPage("system_settings", Qt.resolvedUrl("pages/vpn/mainpage.qml"),
                                      { "importPath": args[1], "importMime": args[0] })
-
