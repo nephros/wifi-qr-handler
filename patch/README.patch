@@ -7,6 +7,7 @@ whole thing another.
 To make changes:
 
     mkdir -p a/usr/share/jolla-settings
+    mkdir -p a/usr/share/jolla-settings/pages/wlan/
     cp /usr/share/jolla-settings/settings.qml a/usr/share/jolla-settings/settings.qml
     cp /usr/share/jolla-settings/pages/wlan/mainpage.qml a/usr/share/jolla-settings/pages/wlan/mainpage.qml
     cp -r a b

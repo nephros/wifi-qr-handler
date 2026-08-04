@@ -36,7 +36,9 @@ desktop-file-install --delete-original       \
    %{buildroot}%{_datadir}/applications/*.desktop
 
 %check
+pushd patch
 make check
+popd
 
 %post
 update-desktop-database %{_datadir}/applications &> /dev/null || :
