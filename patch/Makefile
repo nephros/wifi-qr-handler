@@ -1,6 +1,6 @@
 
 QMLFILES := $(shell find b/ -name "*.qml")
-JSONLINT := python -m json.tool
+JSONLINT := python3 -m json.tool
 QMLLINT := $(shell find /usr/lib*/qt5/bin -name qmllint)
 
 .PRECIOUS: patch.json $(QMLFILES)
